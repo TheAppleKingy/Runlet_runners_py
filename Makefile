@@ -1,8 +1,7 @@
-DOCKERFILES_PATH=gateway/infra/dockerfiles
+DOCKERFILES_PATH=gateway/infra/_dockerfiles
 
-#runners.rebuild.server image containing binary representing gRPC server. This binary should be placed in runner container
 runners.rebuild.store:
-	@docker build -f gateway/infra/dockerfiles/runner.dockerfile -t runner_store .
+	@docker build -f ${DOCKERFILES_PATH}/runner.dockerfile -t runner_store .
 
 runners.rebuild.all: runners.rebuild.store
 	@for dockerfile in ${DOCKERFILES_PATH}/*.Dockerfile; do \
