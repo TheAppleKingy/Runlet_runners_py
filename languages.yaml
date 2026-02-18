@@ -1,0 +1,22 @@
+#{src} is placeholder for source file that use for executing(compiling or running)
+#{bin} is placeholder for name of compiled binary file.
+
+languages:
+  py:
+    compile: []
+    run: ["python", "{src}"]
+  go:
+    compile: ["go", "build", "-o", "{bin}", "{src}"]
+    run: ["{src}"]
+  cs:
+    compile: ["mcs", "-out:{bin}", "{src}"]
+    run: ["mono", "{src}"]
+  js:
+    compile: []
+    run: ["node", "{src}"]
+  cpp: 
+    compile: [ "g++", "-o", "{bin}", "{src}"]
+    run: [ "{src}" ]
+
+src_placeholder: "{src}"
+bin_placeholder: "{bin}"
