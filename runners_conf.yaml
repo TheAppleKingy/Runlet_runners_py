@@ -1,0 +1,36 @@
+runners:
+  py:
+    image: python:3.13-alpine
+    mem_limit: 256m
+    cpu_cores: 1.5
+    envs: ["PYTHONDONTWRITEBYTECODE=1", "PYTHONUNBUFFERED=1"]
+
+  go:
+    image: golang:1.25.6-alpine 
+    mem_limit: 256m
+    cpu_cores: 1.5
+    envs: ["GOTMPDIR=/tmp", "GOCACHE=/tmp/.cache"]
+
+  js:
+    image: node:lts-alpine3.22
+    mem_limit: 256m
+    cpu_cores: 1.5
+    envs: ["NODE_ENV=production", "TMPDIR=/tmp", "HOME=/home/sandbox"]
+
+  cs:
+    image: mcr.microsoft.com/dotnet/sdk:8.0-alpine
+    mem_limit: 256m
+    cpu_cores: 1.5
+
+  cpp:
+    image: frolvlad/alpine-gxx:latest
+    mem_limit: 256m
+    cpu_cores: 1.5
+
+run_conf_path: run_conf.yaml
+context_path: .
+dockerfiles_path: gateway/infra/_dockerfiles
+runner_dockerfile_name: runner.dockerfile
+shared_dockerfile_name: shared.dockerfile
+runner_image_name_pattern: "{}_runner"
+shared_image_name: runner_shared

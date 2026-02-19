@@ -1,0 +1,6 @@
+
+services:
+  runlet_runner_gateway:
+    build:
+      context: ../../
+      dockerfile: build/dev/Dockerfile

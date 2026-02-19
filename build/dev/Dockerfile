@@ -12,4 +12,5 @@ ENV PATH="/root/.local/bin:$PATH"
 RUN poetry config virtualenvs.create false && \
     poetry install --no-root --no-interaction --no-ansi
 
-COPY ./src ./src
+COPY ./gateway ./gateway
+COPY ./runner ./runner

@@ -1,13 +1,11 @@
-FROM golang:1.25.6-alpine AS builder
+ARG IMAGE
 
-WORKDIR /runner
+FROM ${IMAGE}
 
-COPY ../../../runner/go.mod ../../../runner/go.sum ./
-RUN go mod download
+RUN adduser -D -u 1000 -h /home/sandbox sandbox
 
-COPY ../../../runner .
+WORKDIR /home/sandbox
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o runner ./cmd/runner
+COPY --from=runner_shared --chown=sandbox:sandbox /runner /usr/local/bin/runner
 
-FROM scratch AS runner_store
-COPY --from=builder /runner/runner /runner
+ENTRYPOINT ["/usr/local/bin/runner"]

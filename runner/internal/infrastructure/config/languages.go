@@ -21,16 +21,16 @@ type languagesConfig struct {
 func (cfg *languagesConfig) parse() error {
 	path := os.Getenv("LANGS_CONF_PATH")
 	if path == "" {
-		return fmt.Errorf("run error: undefined config path")
+		return fmt.Errorf("internal error: undefined config path")
 	}
 
 	confData, err := os.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("run error: %w", err)
+		return fmt.Errorf("internal error: %w", err)
 	}
 
 	if err := yaml.Unmarshal(confData, cfg); err != nil {
-		return fmt.Errorf("run error: %w", err)
+		return fmt.Errorf("internal error: %w", err)
 	}
 	return nil
 }
