@@ -1,17 +1,30 @@
 package main
 
 import (
-	"runner/internal/application/interfaces"
 	usecases "runner/internal/application/use_cases"
+	"runner/internal/domain"
+	"runner/internal/infrastructure"
 	implementations "runner/internal/infrastructure"
 )
 
-func newCodeRunner() interfaces.Runner {
-	return &implementations.CodeRunner{}
+func NewCodeRunner(
+	runArgs domain.RunArgsType,
+	compileArgs domain.CompileArgsType,
+	srcPlaceholder string,
+	binPlaceholder string,
+	lang string,
+) *infrastructure.CodeRunner {
+	return &implementations.CodeRunner{
+		RunArgs:        runArgs,
+		CompileArgs:    compileArgs,
+		SrcPlaceHolder: srcPlaceholder,
+		BinPlaceholder: binPlaceholder,
+		Lang:           lang,
+	}
 }
 
-func NewRunCodeUseCase() *usecases.TestSolutionUseCase {
+func NewRunCodeUseCase(runner *infrastructure.CodeRunner) *usecases.TestSolutionUseCase {
 	return &usecases.TestSolutionUseCase{
-		Runner: newCodeRunner(),
+		Runner: runner,
 	}
 }

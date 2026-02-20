@@ -14,3 +14,4 @@ RUN poetry config virtualenvs.create false && \
 
 COPY ./gateway ./gateway
 COPY ./runner ./runner
+COPY ./config.yaml ./config.yaml

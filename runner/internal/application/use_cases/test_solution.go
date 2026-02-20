@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 	"runner/internal/application/dto"
-	"runner/internal/application/interfaces"
 	"runner/internal/domain/entities"
+	"runner/internal/infrastructure"
 	"runner/internal/infrastructure/config"
 )
 
@@ -25,19 +25,19 @@ func writeTemp(lang string, code *string) (*os.File, error) {
 }
 
 type TestSolutionUseCase struct {
-	Runner interfaces.Runner
+	Runner *infrastructure.CodeRunner
 }
 
-func (rs TestSolutionUseCase) TestSolution(testsData []dto.RunData, lang string, code *string) (entities.TestCases, error) {
-	f, err := writeTemp(lang, code)
+func (uc TestSolutionUseCase) TestSolution(dto *dto.IncomingData, runTimeout int) (*entities.TestCases, error) {
+	f, err := writeTemp(uc.Runner.Lang, dto.Code)
 	if err != nil {
-		return entities.TestCases{}, fmt.Errorf("internal error: %w", err)
+		return &entities.TestCases{}, fmt.Errorf("internal error: %w", err)
 	}
 	toExec := f.Name()
 	defer func() {
 		os.Remove(toExec)
 	}()
 
-	results, err := rs.Runner.Run(testsData, &toExec, lang)
-	return results, err
+	results, err := uc.Runner.Run(dto.RunData, &toExec, runTimeout)
+	return &results, err
 }

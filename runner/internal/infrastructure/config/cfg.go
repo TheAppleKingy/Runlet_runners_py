@@ -6,7 +6,6 @@ type config interface {
 
 func LoadConfigs() error {
 	configs := []config{
-		&LaunguagesConfig,
 		&AppConfig,
 	}
 	for _, cfg := range configs {
