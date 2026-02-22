@@ -25,24 +25,20 @@ func checkFileExists(path string) error {
 	return nil
 }
 
-func getIncomingData(path string) *dto.IncomingData {
+func getIncomingData(path string, ptr *dto.IncomingData) error {
 	defer os.Remove(path)
 	if err := checkFileExists(path); err != nil {
-		fmt.Printf("internal error: %v", err)
-		os.Exit(1)
+		return fmt.Errorf("internal error: %v", err)
 	}
 
 	fileData, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Printf("internal error: unable to read mounted %s: %v", path, err)
-		os.Exit(1)
+		return fmt.Errorf("internal error: unable to read mounted %s: %v", path, err)
 	}
-	var data dto.IncomingData
-	if err := json.Unmarshal(fileData, &data); err != nil {
-		fmt.Printf("internal error: unable to decode mounted %s: %v", path, err)
-		os.Exit(1)
+	if err := json.Unmarshal(fileData, ptr); err != nil {
+		return fmt.Errorf("internal error: unable to decode mounted %s: %v", path, err)
 	}
-	return &data
+	return nil
 }
 
 func main() {
@@ -101,13 +97,17 @@ func main() {
 		os.Exit(1)
 	}
 	if err := json.Unmarshal([]byte(*compileArgsJSON), &compileArgs); err != nil {
-		fmt.Printf("internal error: invalid run_args JSON: %v", err)
+		printRes(fmt.Errorf("internal error: invalid run_args JSON: %v", err))
 		os.Exit(1)
 	}
-	data := getIncomingData(*inputPath)
+	var data dto.IncomingData
+	if err := getIncomingData(*inputPath, &data); err != nil {
+		printRes(err)
+		os.Exit(1)
+	}
 	runner := NewCodeRunner(runArgs, compileArgs, *srcPlaceholder, *binPlaceholder, config.AppConfig.Language)
 	runService := NewRunCodeUseCase(runner)
-	results, err := runService.TestSolution(data, *timeout)
+	results, err := runService.TestSolution(&data, *timeout)
 	response.TestCases = results
 	printRes(err)
 }

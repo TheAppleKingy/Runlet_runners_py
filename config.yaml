@@ -50,3 +50,5 @@ runner_image_name_pattern: "{}_runner"
 shared_image_name: runner_shared
 src_placeholder: "{src}"
 bin_placeholder: "{bin}"
+volume_name: runlet_code_storage
+runner_mountpoint: /home/sandbox

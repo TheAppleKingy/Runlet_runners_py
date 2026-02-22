@@ -1,14 +1,15 @@
 import json
 import os
+import uuid
+
 from typing import Optional
 
 from docker import from_env
 from docker.errors import ImageNotFound
 
-from gateway.application.interfaces.services import (
-    CodeRunnerInterface
-)
+from gateway.application.interfaces import CodeRunnerInterface
 from gateway.infra.configs import RunnersConfig
+from gateway.logger import logger
 
 
 class DockerCodeRunService(CodeRunnerInterface):
@@ -58,12 +59,13 @@ class DockerCodeRunService(CodeRunnerInterface):
     def run_code(self, for_lang: str, input_path: str, cases_count: int) -> str:
         self._ensure_runner(for_lang)
         lang_conf = self._runners_conf.runners[for_lang]
+        target_file = os.path.basename(input_path)
         cmd = [
             "--run_args", json.dumps(lang_conf.run_args),
             "--compile_args", json.dumps(lang_conf.compile_args),
             "--src_placeholder", self._runners_conf.src_placeholder,
             "--bin_placeholder", self._runners_conf.bin_placeholder,
-            "--input", input_path,
+            "--input", os.path.join(self._runners_conf.runner_mountpoint, target_file),
             "--run_timeout", str(lang_conf.run_timeout)
         ]
         container = self._cli.containers.run(
@@ -78,7 +80,7 @@ class DockerCodeRunService(CodeRunnerInterface):
             security_opt=["no-new-privileges:true"],
             cap_drop=["ALL"],
             pids_limit=100,
-            volumes={input_path: {"bind": input_path, "mode": "ro"}},
+            volumes={self._runners_conf.volume_name: {"bind": self._runners_conf.runner_mountpoint, "mode": "ro"}},
             environment=[f"LANG={for_lang}"],
             tmpfs={os.path.split(input_path)[0]: 'rw,noexec,nosuid,nodev,size=10m'},
         )

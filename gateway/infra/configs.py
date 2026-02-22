@@ -15,6 +15,24 @@ class RedisConfig(BaseSettings):
         return f"redis://:{self.redis_password}@{self.redis_host}:6379"
 
 
+class RabbitConfig(BaseSettings):
+    rabbitmq_user: str
+    rabbitmq_password: str
+    rabbitmq_host: str
+    incoming_data_queue: str = "test_solutions"
+    outcoming_data_queue: str = "results"
+
+    @property
+    def conn_url(self):
+        return f"amqp://{self.rabbitmq_user}:{self.rabbitmq_password}@{self.rabbitmq_host}:5672"
+
+
+class AppConfig(BaseSettings):
+    config_path: str
+    flower_user: str
+    flower_password: str
+
+
 LangCode = Literal["py", "js", "go", "cs", "cpp"]
 
 
@@ -38,6 +56,8 @@ class RunnersConfig(BaseModel):
     context_path: str
     src_placeholder: str
     bin_placeholder: str
+    volume_name: str
+    runner_mountpoint: str
 
     @field_validator("runners", mode="after")
     @classmethod

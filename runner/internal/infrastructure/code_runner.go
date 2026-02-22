@@ -87,15 +87,19 @@ func (cr CodeRunner) Run(
 			}}, nil
 		}
 		if err != nil {
+			out = "internal error"
+			resultErr := err
 			if errMsg != "" {
-				return entities.TestCases{{
-					TestNum: testData.RunNum,
-					Input:   testData.Input,
-					Output:  errMsg,
-				}}, nil
+				out = errMsg
+				resultErr = nil
 			} else {
-				return entities.TestCases{}, fmt.Errorf("internal error: %w", err)
+				resultErr = fmt.Errorf("internal error: %w", err)
 			}
+			return entities.TestCases{{
+				TestNum: testData.RunNum,
+				Input:   testData.Input,
+				Output:  out,
+			}}, resultErr
 		}
 		results = append(results, entities.TestCase{
 			TestNum: testData.RunNum,

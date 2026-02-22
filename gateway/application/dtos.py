@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, TypedDict
 
 from pydantic import BaseModel, Field
 
@@ -26,6 +26,25 @@ class TestSolutionDTO(BaseModel):
     ]
     code: str
     run_data: list[RunDataDTO] = Field(min_length=1)
+
+
+class DictRunData(TypedDict):
+    test_num: int
+    input: str
+
+
+class DictTestSolutionDTO(TypedDict):
+    student_id: int
+    problem_id: int
+    lang: Literal[
+        "py",
+        "go",
+        "js",
+        "cpp",
+        "cs"
+    ]
+    code: str
+    run_data: list[DictRunData]
 
 
 class InputDTO(BaseModel):

@@ -1,10 +1,9 @@
 import yaml
 import asyncio
-
-from gateway.infra.services.code_runner import DockerCodeRunService
+import aio_pika
+from gateway.infra.code_runner import DockerCodeRunService
 from gateway.infra.configs import RunnersConfig
-from gateway.application.use_case import TestSolutionUseCase, TestSolutionDTO
-from gateway.application.dtos import RunDataDTO
+from gateway.application.dtos import RunDataDTO, TestSolutionDTO
 
 
 with open("config.yaml", "r") as f:
@@ -12,25 +11,24 @@ with open("config.yaml", "r") as f:
 
 m = RunnersConfig.model_validate(data)
 s = DockerCodeRunService(m)
-uc = TestSolutionUseCase(s)
 run_data = [RunDataDTO(test_num=1, input="1 2"), RunDataDTO(test_num=2, input="3 4")]
-code = """
-import time
 
 
-time.sleep(5)
+async def test_publish():
+    conn = await aio_pika.connect_robust("amqp://admin:admin@localhost:5672")
+    chan = await conn.channel()
+    code = 'print("Hello world")'
+    dto = TestSolutionDTO(
+        student_id=1,
+        problem_id=2,
+        lang="py",
+        code=code,
+        run_data=run_data
+    )
 
-
-print("CPU test completed")
-"""
-dto = TestSolutionDTO(
-    student_id=1,
-    problem_id=2,
-    lang="py",
-    code=code,
-    run_data=run_data
-)
-
+    await chan.default_exchange.publish(
+        aio_pika.Message(body=dto.model_dump_json().encode(), headers={"task_name": "test_solution_handler"}),
+        routing_key="test_solutions"
+    )
 if __name__ == "__main__":
-    res = asyncio.run(uc.execute(dto))
-    print(res)
+    asyncio.run(test_publish())
