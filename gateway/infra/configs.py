@@ -21,6 +21,7 @@ class RabbitConfig(BaseSettings):
     rabbitmq_host: str
     incoming_data_queue: str = "test_solutions"
     outcoming_data_queue: str = "results"
+    task_name: str = "handle_test_result"
 
     @property
     def conn_url(self):

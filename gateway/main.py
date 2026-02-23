@@ -38,7 +38,7 @@ async def lock():
 
 
 async def lifespan():
-    logger.info("Starting runners gateway...")
+    logger.info("Starting runners gateway")
     setup_dishka(container, celery_app)
     rabbit_conf = container.get(RabbitConfig)
     factory = RabbitConsumerFactory(rabbit_conf.conn_url, shared_conn=False)
@@ -50,7 +50,7 @@ async def lifespan():
         with_dead_letter_policy=True
     )
     await lock()
-    logger.info("Runners gateway stopped. Shutdown...")
+    logger.info("Runners gateway stopped.")
     container.close()
     await consumer_registry.disconnect_consumers()
 

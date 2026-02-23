@@ -1,6 +1,4 @@
 import pika
-import threading
-import time
 
 from pika.adapters.blocking_connection import BlockingChannel
 
@@ -11,13 +9,14 @@ class RabbitPublisher(MessagePublisherInterface):
     def __init__(
         self,
         conn_url: str,
-        queue_name: str
+        queue_name: str,
+        task_name: str
     ):
         self._conn_url = conn_url
         self._connection: pika.BlockingConnection = None
         self._channel: BlockingChannel = None
         self._queue_name = queue_name
-        self._is_running = False
+        self._task_name = task_name
 
     def connect(self):
         if not self._connection or self._connection.is_closed:
@@ -27,14 +26,6 @@ class RabbitPublisher(MessagePublisherInterface):
             self._connection = pika.BlockingConnection(
                 params
             )
-        self._is_running = True
-        threading.Thread(target=self._heartbeat, daemon=True).start()
-
-    def _heartbeat(self):
-        while self._is_running:
-            time.sleep(60)
-            conn = self._check_connection()
-            conn.process_data_events()
 
     def _check_connection(self):
         self.connect()
@@ -55,7 +46,7 @@ class RabbitPublisher(MessagePublisherInterface):
             pika.BasicProperties(
                 content_type="application/json",
                 delivery_mode=2,
-                headers={"task_name": "handle_test_result"}
+                headers={"task_name": self._task_name}
             )
         )
 

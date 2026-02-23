@@ -1,6 +1,5 @@
 import json
 import os
-import uuid
 
 from typing import Optional
 
@@ -9,7 +8,7 @@ from docker.errors import ImageNotFound
 
 from gateway.application.interfaces import CodeRunnerInterface
 from gateway.infra.configs import RunnersConfig
-from gateway.logger import logger
+from gateway.domain.types import CodeName
 
 
 class DockerCodeRunService(CodeRunnerInterface):
@@ -46,7 +45,7 @@ class DockerCodeRunService(CodeRunnerInterface):
                 self._runners_conf.shared_image_name
             )
 
-    def _ensure_runner(self, for_lang: str):
+    def _ensure_runner(self, for_lang: CodeName):
         self._ensure_shared()
         runner_image_name = self._runners_conf.runner_image_name_pattern.format(for_lang)
         if not self._check_image(runner_image_name):
@@ -56,7 +55,7 @@ class DockerCodeRunService(CodeRunnerInterface):
                 build_args={"IMAGE": self._runners_conf.runners[for_lang].image}
             )
 
-    def run_code(self, for_lang: str, input_path: str, cases_count: int) -> str:
+    def run_code(self, for_lang: CodeName, input_path: str, cases_count: int) -> str:
         self._ensure_runner(for_lang)
         lang_conf = self._runners_conf.runners[for_lang]
         target_file = os.path.basename(input_path)

@@ -2,6 +2,8 @@ from typing import Literal, TypedDict
 
 from pydantic import BaseModel, Field
 
+from gateway.domain.types import CodeName
+
 
 class TestCaseDTO(BaseModel):
     test_num: int
@@ -17,13 +19,8 @@ class RunDataDTO(BaseModel):
 class TestSolutionDTO(BaseModel):
     student_id: int
     problem_id: int
-    lang: Literal[
-        "py",
-        "go",
-        "js",
-        "cpp",
-        "cs"
-    ]
+    course_id: int
+    lang: CodeName
     code: str
     run_data: list[RunDataDTO] = Field(min_length=1)
 
@@ -36,13 +33,8 @@ class DictRunData(TypedDict):
 class DictTestSolutionDTO(TypedDict):
     student_id: int
     problem_id: int
-    lang: Literal[
-        "py",
-        "go",
-        "js",
-        "cpp",
-        "cs"
-    ]
+    course_id: int
+    lang: CodeName
     code: str
     run_data: list[DictRunData]
 
@@ -55,3 +47,7 @@ class InputDTO(BaseModel):
 class ResultDTO(BaseModel):
     test_cases: list[TestCaseDTO]
     err_msg: str
+    code: str = ""
+    problem_id: int = 0
+    student_id: int = 0
+    course_id: int = 0

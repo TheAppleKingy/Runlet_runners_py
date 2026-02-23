@@ -42,11 +42,9 @@ class WorkerProvider(Provider):
             data = yaml.safe_load(f)
         return RunnersConfig.model_validate(data)
 
-    @provide
+    @provide(scope=Scope.REQUEST)
     def publisher(self, rabbit_conf: RabbitConfig) -> MessagePublisherInterface:
-        publisher = RabbitPublisher(rabbit_conf.conn_url, rabbit_conf.outcoming_data_queue)
-        publisher.connect()
-        return publisher
+        return RabbitPublisher(rabbit_conf.conn_url, rabbit_conf.outcoming_data_queue, rabbit_conf.task_name)
 
     runner = provide(DockerCodeRunService, provides=CodeRunnerInterface, scope=Scope.REQUEST)
 
@@ -70,5 +68,4 @@ celery_app = get_celery()
 @worker_process_shutdown.connect()
 def _shutdown(*args, **kwargs):
     container: Container = celery_app.conf["dishka_container"]
-    container.get(MessagePublisherInterface).disconnect()
     container.close()
