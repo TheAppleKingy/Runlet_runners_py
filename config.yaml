@@ -1,0 +1,56 @@
+runners:
+  py:
+    image: python:3.13-alpine
+    mem_limit: 256m
+    cpu_cores: 1.5
+    envs: ["PYTHONDONTWRITEBYTECODE=1", "PYTHONUNBUFFERED=1"]
+    compile_args: []
+    run_args: ["python", "{src}"]
+    run_timeout: 10
+
+  go:
+    image: golang:alpine 
+    mem_limit: 512m
+    cpu_cores: 1.5
+    envs: ["GOTMPDIR=/tmp", "GOCACHE=/tmp/.cache"]
+    compile_args: ["go", "build", "-o", "{bin}", "{src}"]
+    run_args: ["{src}"]
+    run_timeout: 10
+
+  js:
+    image: node:lts-alpine3.23
+    mem_limit: 256m
+    cpu_cores: 1.5
+    envs: ["NODE_ENV=production", "TMPDIR=/tmp", "HOME=/home/sandbox"]
+    compile_args: []
+    run_args: ["node", "{src}"]
+    run_timeout: 10
+
+  cs:
+    image: frolvlad/alpine-mono:latest
+    mem_limit: 256m
+    cpu_cores: 1.5
+    compile_args: ["mcs", "-out:{bin}", "{src}"]
+    run_args: ["mono", "{src}"]
+    run_timeout: 10
+
+  cpp:
+    image: frolvlad/alpine-gxx:latest
+    mem_limit: 256m
+    cpu_cores: 1.5
+    compile_args: ["g++", "-o", "{bin}", "{src}"]
+    run_args: ["{src}"]
+    run_timeout: 10
+
+context_path: .
+dockerfiles_path: gateway/infra/_dockerfiles
+runner_dockerfile_name: runner.dockerfile
+shared_dockerfile_name: shared.dockerfile
+runner_image_name_pattern: "{}_runner"
+shared_image_name: runner_shared
+src_placeholder: "{src}"
+bin_placeholder: "{bin}"
+volume_name: runlet_code_storage
+runner_mountpoint: /home/sandbox #directory where will be mounted named volume inside the runner
+gateway_source_data_dir: /tmp #named volume should be mounted into this dir inside gateway container to provide access the file with run data and code inside the runner
+tmpfs: /tmp #directory that will be as tmpfs parameter when runner eill be started. need to write files with source code to provide to interpretators or compile and run binary. the only directory with these permissions 

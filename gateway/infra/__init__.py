@@ -1,6 +1,2 @@
-import docker
-
-docker = docker.from_env()
-
-
-docker.containers.run()
+from .message_publisher import RabbitPublisher
+from .code_runner import DockerCodeRunService

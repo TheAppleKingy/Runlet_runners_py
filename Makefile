@@ -1,21 +1,30 @@
-DOCKERFILES_PATH=gateway/infra/dockerfiles
+DOCKERFILES_PATH=gateway/infra/_dockerfiles
+COMPOSE_DEV=build/dev/compose.yaml
+COMPOSE_PROD=build/prod/compose.yaml
 
-#runners.rebuild.server image containing binary representing gRPC server. This binary should be placed in runner container
-runners.rebuild.store:
-	@docker build -f gateway/infra/dockerfiles/runner.dockerfile -t runner_store .
 
-runners.rebuild.all: runners.rebuild.store
-	@for dockerfile in ${DOCKERFILES_PATH}/*.Dockerfile; do \
-		if [ "$$dockerfile" != "${DOCKERFILES_PATH}/runner.dockerfile" ]; then \
-			lang=$$(basename $$dockerfile .Dockerfile); \
-			echo "🔨 Building $$lang runner..."; \
-			docker build -f $$dockerfile -t $${lang}_runner .; \
-		fi \
-	done
+runlet.runners.dev.build:
+	@docker compose -f ${COMPOSE_DEV} build
 
-runners.rebuild.lang: runners.rebuild.store
-	@if [ -z "$(LANG)" ]; then \
-		echo "Please specify LANG (e.g., make runners.rebuild.lang LANG=py)"; \
-		exit 1; \
-	fi
-	docker build -f ${DOCKERFILES_PATH}/$(LANG).Dockerfile -t $(LANG)_runner .
+runlet.runners.dev.start:
+	@docker compose -f ${COMPOSE_DEV} up
+
+runlet.runners.dev.build.start: runlet.runners.dev.build
+	@docker compose -f ${COMPOSE_DEV} up
+
+runlet.runners.dev.down:
+	@docker compose -f ${COMPOSE_DEV} down
+
+#-------------------------------------------------------------
+
+runlet.runners.prod.build:
+	@docker compose -f ${COMPOSE_PROD} build
+
+runlet.runners.prod.start:
+	@docker compose -f ${COMPOSE_PROD} up
+
+runlet.runners.prod.build.start: runlet.runners.prod.build
+	@docker compose -f ${COMPOSE_PROD} up
+
+runlet.runners.prod.down:
+	@docker compose -f ${COMPOSE_PROD} down

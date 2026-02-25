@@ -1,74 +1,78 @@
-package implementations
+package infrastructure
 
 import (
 	"bytes"
-	"errors"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"runner/internal/application/dto"
+	"runner/internal/domain"
 	"runner/internal/domain/entities"
-	"runner/internal/infrastructure/config"
 	"strings"
+	"time"
 )
 
 // CodeRunner is implementation of interfaces.Runner
-type CodeRunner struct{}
+type CodeRunner struct {
+	RunArgs        domain.RunArgsType
+	CompileArgs    domain.CompileArgsType
+	SrcPlaceHolder string
+	BinPlaceholder string
+	Lang           string
+	Tmpfs          string
+}
 
 // compile compiles binary based on src via lang compilator and returns name of binary file or provided src if language is interpreted
-func (cr CodeRunner) compile(src *string, lang string) error {
-	binaryName := strings.TrimSuffix(*src, "."+lang)
-	langConf, ok := config.LaunguagesConfig.Languages[lang]
-	if !ok {
-		return errors.New("unable to load config data")
-	}
-	args := langConf.CompileCommandArgs
-	if len(args) == 0 {
+func (cr CodeRunner) compile(src *string) error {
+	if len(cr.CompileArgs) == 0 {
 		return nil
 	}
-
-	compileArgs := make([]string, len(args))
-	for i, arg := range args {
-		srcPlaceholder := config.LaunguagesConfig.SrcPlaceholder
-		binPlaceholder := config.LaunguagesConfig.BinPlaceholder
+	binaryPath := strings.TrimSuffix(*src, "."+cr.Lang)
+	compileArgs := make([]string, len(cr.CompileArgs))
+	for i, arg := range cr.CompileArgs {
 		switch {
-		case strings.Contains(arg, srcPlaceholder):
-			compileArgs[i] = strings.ReplaceAll(arg, srcPlaceholder, *src)
-		case strings.Contains(arg, binPlaceholder):
-			compileArgs[i] = strings.ReplaceAll(arg, binPlaceholder, binaryName)
+		case strings.Contains(arg, cr.SrcPlaceHolder):
+			compileArgs[i] = strings.ReplaceAll(arg, cr.SrcPlaceHolder, *src)
+		case strings.Contains(arg, cr.BinPlaceholder):
+			compileArgs[i] = strings.ReplaceAll(arg, cr.BinPlaceholder, binaryPath)
 		default:
 			compileArgs[i] = arg
 		}
 	}
-
 	cmd := exec.Command(compileArgs[0], compileArgs[1:]...)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
 		errMsg := strings.TrimSuffix(stderr.String(), "\n")
 		if errMsg != "" {
-			return fmt.Errorf("unable to compile '%s' code: %s", lang, errMsg)
+			return fmt.Errorf("unable to compile '%s' code: %s", cr.Lang, errMsg)
 		}
-		return fmt.Errorf("unable to compile '%s' code: %w", lang, err)
+		return fmt.Errorf("unable to compile '%s' code: %w", cr.Lang, err)
 	}
 	os.Remove(*src)
-	*src = binaryName
+	*src = binaryPath
 	return nil
 }
 
-func (cr CodeRunner) Run(runData []dto.RunData, src *string, lang string) (entities.TestCases, error) {
+func (cr CodeRunner) Run(
+	runData *[]dto.RunData,
+	src *string,
+	runTimeout int,
+) (entities.TestCases, error) {
 	var results entities.TestCases
-	if err := cr.compile(src, lang); err != nil {
+	if err := cr.compile(src); err != nil {
 		return entities.TestCases{}, fmt.Errorf("internal error: %w", err)
 	}
-	args := config.LaunguagesConfig.Languages[lang].RunCommandArgs
-	runArgs := make([]string, len(args))
-	for i, arg := range args {
-		runArgs[i] = strings.ReplaceAll(arg, config.LaunguagesConfig.SrcPlaceholder, *src)
+	runArgs := make([]string, len(cr.RunArgs))
+	for i, arg := range cr.RunArgs {
+		runArgs[i] = strings.ReplaceAll(arg, cr.SrcPlaceHolder, *src)
 	}
-
-	for _, testData := range runData {
-		cmd := exec.Command(runArgs[0], runArgs[1:]...)
+	timeout := time.Duration(runTimeout) * time.Second
+	for _, testData := range *runData {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		cmd := exec.CommandContext(ctx, runArgs[0], runArgs[1:]...)
 		var stdout, stderr bytes.Buffer
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
@@ -76,16 +80,27 @@ func (cr CodeRunner) Run(runData []dto.RunData, src *string, lang string) (entit
 		err := cmd.Run()
 		out := strings.TrimRight(stdout.String(), "\n")
 		errMsg := strings.TrimRight(stderr.String(), "\n")
+		if ctx.Err() == context.DeadlineExceeded {
+			return entities.TestCases{{
+				TestNum: testData.RunNum,
+				Input:   testData.Input,
+				Output:  "timeout exceeded",
+			}}, nil
+		}
 		if err != nil {
+			out = "internal error"
+			resultErr := err
 			if errMsg != "" {
-				return entities.TestCases{{
-					TestNum: testData.RunNum,
-					Input:   testData.Input,
-					Output:  errMsg,
-				}}, nil
+				out = errMsg
+				resultErr = nil
 			} else {
-				return entities.TestCases{}, fmt.Errorf("internal error: %w", err)
+				resultErr = fmt.Errorf("internal error: %w", err)
 			}
+			return entities.TestCases{{
+				TestNum: testData.RunNum,
+				Input:   testData.Input,
+				Output:  out,
+			}}, resultErr
 		}
 		results = append(results, entities.TestCase{
 			TestNum: testData.RunNum,

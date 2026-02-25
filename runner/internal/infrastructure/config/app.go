@@ -13,7 +13,7 @@ type appConfig struct {
 func (conf *appConfig) parse() error {
 	lang := os.Getenv("LANG")
 	if lang == "" {
-		return errors.New("run error: undefined programming language")
+		return errors.New("undefined programming language")
 	}
 	conf.Language = lang
 	return nil

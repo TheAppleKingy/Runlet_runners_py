@@ -2,12 +2,12 @@ FROM golang:1.25.6-alpine AS builder
 
 WORKDIR /runner
 
-COPY ../../../runner/go.mod ../../../runner/go.sum ./
+COPY runner/go.mod runner/go.sum ./
 RUN go mod download
 
-COPY ../../../runner .
+COPY runner .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o runner ./cmd/runner
 
-FROM scratch AS runner_store
+FROM scratch AS runner_shared
 COPY --from=builder /runner/runner /runner

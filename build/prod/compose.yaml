@@ -3,10 +3,6 @@ services:
     build:
       context: ../../
       dockerfile: build/dev/Dockerfile
-    volumes:
-      - ../../gateway:/app/gateway
-      - ../../runner:/app/runner
-      - ../../config.yaml:/app/config.yaml
     hostname: runner_gateway
     networks:
       - runner
@@ -34,9 +30,6 @@ services:
       - .env
     command: celery -A gateway.celery_app.celery_app worker --concurrency=8 --loglevel=info --events
     volumes:
-      - ../../gateway:/app/gateway
-      - ../../runner:/app/runner
-      - ../../config.yaml:/app/config.yaml
       - /var/run/docker.sock:/var/run/docker.sock
       - runlet_code_storage:/tmp #see config.yaml!!! must to ensure directory in the worker where volume will be mounted
     depends_on:
@@ -52,10 +45,6 @@ services:
     env_file:
       - .env
     command: celery -A gateway.celery_app.celery_app flower --basic_auth=${FLOWER_USER}:${FLOWER_PASSWORD}
-    volumes:
-      - ../../gateway:/app/gateway
-      - ../../runner:/app/runner
-      - ../../config.yaml:/app/config.yaml
     depends_on:
       - runlet_runner_worker
     ports:
