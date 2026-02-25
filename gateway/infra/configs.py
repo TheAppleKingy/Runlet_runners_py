@@ -59,6 +59,8 @@ class RunnersConfig(BaseModel):
     bin_placeholder: str
     volume_name: str
     runner_mountpoint: str
+    gateway_source_data_dir: str
+    tmpfs: str
 
     @field_validator("runners", mode="after")
     @classmethod

@@ -9,8 +9,8 @@ runners:
     run_timeout: 10
 
   go:
-    image: golang:1.25.6-alpine 
-    mem_limit: 256m
+    image: golang:alpine 
+    mem_limit: 512m
     cpu_cores: 1.5
     envs: ["GOTMPDIR=/tmp", "GOCACHE=/tmp/.cache"]
     compile_args: ["go", "build", "-o", "{bin}", "{src}"]
@@ -18,7 +18,7 @@ runners:
     run_timeout: 10
 
   js:
-    image: node:lts-alpine3.22
+    image: node:lts-alpine3.23
     mem_limit: 256m
     cpu_cores: 1.5
     envs: ["NODE_ENV=production", "TMPDIR=/tmp", "HOME=/home/sandbox"]
@@ -27,7 +27,7 @@ runners:
     run_timeout: 10
 
   cs:
-    image: mcr.microsoft.com/dotnet/sdk:8.0-alpine
+    image: frolvlad/alpine-mono:latest
     mem_limit: 256m
     cpu_cores: 1.5
     compile_args: ["mcs", "-out:{bin}", "{src}"]
@@ -51,4 +51,6 @@ shared_image_name: runner_shared
 src_placeholder: "{src}"
 bin_placeholder: "{bin}"
 volume_name: runlet_code_storage
-runner_mountpoint: /home/sandbox
+runner_mountpoint: /home/sandbox #directory where will be mounted named volume inside the runner
+gateway_source_data_dir: /tmp #named volume should be mounted into this dir inside gateway container to provide access the file with run data and code inside the runner
+tmpfs: /tmp #directory that will be as tmpfs parameter when runner eill be started. need to write files with source code to provide to interpretators or compile and run binary. the only directory with these permissions 

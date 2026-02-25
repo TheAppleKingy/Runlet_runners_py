@@ -2,7 +2,7 @@ import os
 import tempfile
 import json
 
-from dishka.integrations.celery import FromDishka, inject
+from dishka.integrations.celery import FromDishka
 
 from gateway.application.interfaces import CodeRunnerInterface
 from gateway.application.interfaces import MessagePublisherInterface
@@ -11,6 +11,7 @@ from gateway.application.dtos import (
     DictTestSolutionDTO,
     TestCaseDTO
 )
+from gateway.infra.configs import RunnersConfig
 from gateway.celery_app import celery_app
 from gateway.logger import logger
 
@@ -19,10 +20,11 @@ from gateway.logger import logger
 def test_solution(
     dto: DictTestSolutionDTO,
     runner: FromDishka[CodeRunnerInterface],
-    publisher: FromDishka[MessagePublisherInterface]
+    publisher: FromDishka[MessagePublisherInterface],
+    conf: FromDishka[RunnersConfig]
 ):
     file_name = f"run-s-{dto['student_id']}-p-{dto['problem_id']}.json"
-    path = os.path.join(tempfile.gettempdir(), file_name)
+    path = os.path.join(conf.gateway_source_data_dir, file_name)
     with open(path, "w") as f:
         json.dump({"code": dto["code"], "run_data": dto["run_data"]}, f)
     try:
@@ -38,6 +40,9 @@ def test_solution(
             result_model.test_cases = [TestCaseDTO(**{**dto["run_data"][0], "output": head_err})]
             logger.error(
                 f"Unable to run tests of problem {dto["problem_id"]} by student {dto["student_id"]}. Runner response - '{result_model.err_msg}'")
+        elif result_model.err_msg:
+            logger.error(
+                f"Unexpected error occured when running tests of problem '{dto['problem_id']} of student {dto['student_id']}'. Runner response - {result_model.err_msg}")
         publisher.publish(result_model.model_dump_json())
     except Exception as e:
         publisher.publish(

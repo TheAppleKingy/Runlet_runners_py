@@ -13,6 +13,7 @@ func NewCodeRunner(
 	srcPlaceholder string,
 	binPlaceholder string,
 	lang string,
+	tmpfs string,
 ) *infrastructure.CodeRunner {
 	return &implementations.CodeRunner{
 		RunArgs:        runArgs,
@@ -20,6 +21,7 @@ func NewCodeRunner(
 		SrcPlaceHolder: srcPlaceholder,
 		BinPlaceholder: binPlaceholder,
 		Lang:           lang,
+		Tmpfs:          tmpfs,
 	}
 }
 

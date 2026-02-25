@@ -65,7 +65,8 @@ class DockerCodeRunService(CodeRunnerInterface):
             "--src_placeholder", self._runners_conf.src_placeholder,
             "--bin_placeholder", self._runners_conf.bin_placeholder,
             "--input", os.path.join(self._runners_conf.runner_mountpoint, target_file),
-            "--run_timeout", str(lang_conf.run_timeout)
+            "--run_timeout", str(lang_conf.run_timeout),
+            "--tmpfs", self._runners_conf.tmpfs
         ]
         container = self._cli.containers.run(
             image=self._runners_conf.runner_image_name_pattern.format(for_lang),
@@ -79,9 +80,14 @@ class DockerCodeRunService(CodeRunnerInterface):
             security_opt=["no-new-privileges:true"],
             cap_drop=["ALL"],
             pids_limit=100,
-            volumes={self._runners_conf.volume_name: {"bind": self._runners_conf.runner_mountpoint, "mode": "ro"}},
-            environment=[f"LANG={for_lang}"],
-            tmpfs={os.path.split(input_path)[0]: 'rw,noexec,nosuid,nodev,size=10m'},
+            volumes={
+                self._runners_conf.volume_name: {
+                    "bind": self._runners_conf.runner_mountpoint,
+                    "mode": "ro"
+                }
+            },
+            environment=[f"LANG={for_lang}", *lang_conf.envs],
+            tmpfs={self._runners_conf.tmpfs: 'rw,exec,nosuid,nodev,size=256m'},
         )
         try:
             container.wait(timeout=lang_conf.run_timeout * cases_count + 5)

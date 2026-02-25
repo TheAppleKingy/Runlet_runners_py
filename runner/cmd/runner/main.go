@@ -65,6 +65,7 @@ func main() {
 	binPlaceholder := flag.String("bin_placeholder", "", "")
 	inputPath := flag.String("input", "", "")
 	timeout := flag.Int("run_timeout", 0, "")
+	tmpfs := flag.String("tmpfs", "", "")
 	flag.Parse()
 	if *inputPath == "" {
 		printRes(fmt.Errorf("internal error: compile args was not provide"))
@@ -90,6 +91,10 @@ func main() {
 		printRes(fmt.Errorf("internal error: timeout for running one test case cannot be 0"))
 		os.Exit(1)
 	}
+	if *tmpfs == "" {
+		printRes(fmt.Errorf("internal error: tmpfs dir was not provide"))
+		os.Exit(1)
+	}
 	var runArgs domain.RunArgsType
 	var compileArgs domain.CompileArgsType
 	if err := json.Unmarshal([]byte(*runArgsJSON), &runArgs); err != nil {
@@ -105,7 +110,14 @@ func main() {
 		printRes(err)
 		os.Exit(1)
 	}
-	runner := NewCodeRunner(runArgs, compileArgs, *srcPlaceholder, *binPlaceholder, config.AppConfig.Language)
+	runner := NewCodeRunner(
+		runArgs,
+		compileArgs,
+		*srcPlaceholder,
+		*binPlaceholder,
+		config.AppConfig.Language,
+		*tmpfs,
+	)
 	runService := NewRunCodeUseCase(runner)
 	results, err := runService.TestSolution(&data, *timeout)
 	response.TestCases = results

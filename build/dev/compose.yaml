@@ -38,7 +38,7 @@ services:
       - ../../runner:/app/runner
       - ../../config.yaml:/app/config.yaml
       - /var/run/docker.sock:/var/run/docker.sock
-      - runlet_code_storage:/tmp
+      - runlet_code_storage:/tmp #see config.yaml!!! must to ensure directory in the worker where volume will be mounted
     depends_on:
       - runlet_runner_redis
     networks:

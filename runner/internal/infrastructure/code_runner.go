@@ -20,6 +20,7 @@ type CodeRunner struct {
 	SrcPlaceHolder string
 	BinPlaceholder string
 	Lang           string
+	Tmpfs          string
 }
 
 // compile compiles binary based on src via lang compilator and returns name of binary file or provided src if language is interpreted
@@ -27,14 +28,14 @@ func (cr CodeRunner) compile(src *string) error {
 	if len(cr.CompileArgs) == 0 {
 		return nil
 	}
-	binaryName := strings.TrimSuffix(*src, "."+cr.Lang)
+	binaryPath := strings.TrimSuffix(*src, "."+cr.Lang)
 	compileArgs := make([]string, len(cr.CompileArgs))
 	for i, arg := range cr.CompileArgs {
 		switch {
 		case strings.Contains(arg, cr.SrcPlaceHolder):
 			compileArgs[i] = strings.ReplaceAll(arg, cr.SrcPlaceHolder, *src)
 		case strings.Contains(arg, cr.BinPlaceholder):
-			compileArgs[i] = strings.ReplaceAll(arg, cr.BinPlaceholder, binaryName)
+			compileArgs[i] = strings.ReplaceAll(arg, cr.BinPlaceholder, binaryPath)
 		default:
 			compileArgs[i] = arg
 		}
@@ -50,7 +51,7 @@ func (cr CodeRunner) compile(src *string) error {
 		return fmt.Errorf("unable to compile '%s' code: %w", cr.Lang, err)
 	}
 	os.Remove(*src)
-	*src = binaryName
+	*src = binaryPath
 	return nil
 }
 

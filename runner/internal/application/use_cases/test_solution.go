@@ -10,8 +10,8 @@ import (
 )
 
 // writeTemp creates and returns pointer to temporary file containing code for running
-func writeTemp(lang string, code *string) (*os.File, error) {
-	tmpFile, err := os.CreateTemp("", fmt.Sprintf(config.AppConfig.TmpNamePattern, lang))
+func writeTemp(lang string, code *string, dir string) (*os.File, error) {
+	tmpFile, err := os.CreateTemp(dir, fmt.Sprintf(config.AppConfig.TmpNamePattern, lang))
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ type TestSolutionUseCase struct {
 }
 
 func (uc TestSolutionUseCase) TestSolution(dto *dto.IncomingData, runTimeout int) (*entities.TestCases, error) {
-	f, err := writeTemp(uc.Runner.Lang, dto.Code)
+	f, err := writeTemp(uc.Runner.Lang, dto.Code, uc.Runner.Tmpfs)
 	if err != nil {
 		return &entities.TestCases{}, fmt.Errorf("internal error: %w", err)
 	}

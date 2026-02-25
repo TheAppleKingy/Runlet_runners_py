@@ -1,10 +1,7 @@
 DOCKERFILES_PATH=gateway/infra/_dockerfiles
 COMPOSE_DEV=build/dev/compose.yaml
+COMPOSE_PROD=build/prod/compose.yaml
 
-runners.rebuild.store:
-	@docker build -f ${DOCKERFILES_PATH}/runner.dockerfile -t runner_store .
-
-#--------------------------------------------------------------------------------------
 
 runlet.runners.dev.build:
 	@docker compose -f ${COMPOSE_DEV} build
@@ -17,3 +14,17 @@ runlet.runners.dev.build.start: runlet.runners.dev.build
 
 runlet.runners.dev.down:
 	@docker compose -f ${COMPOSE_DEV} down
+
+#-------------------------------------------------------------
+
+runlet.runners.prod.build:
+	@docker compose -f ${COMPOSE_PROD} build
+
+runlet.runners.prod.start:
+	@docker compose -f ${COMPOSE_PROD} up
+
+runlet.runners.prod.build.start: runlet.runners.prod.build
+	@docker compose -f ${COMPOSE_PROD} up
+
+runlet.runners.prod.down:
+	@docker compose -f ${COMPOSE_PROD} down
