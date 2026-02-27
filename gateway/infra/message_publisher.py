@@ -1,6 +1,6 @@
-import pika
+import pika  # type: ignore[import-untyped]
 
-from pika.adapters.blocking_connection import BlockingChannel
+from pika.adapters.blocking_connection import BlockingChannel  # type: ignore[import-untyped]
 
 from gateway.application.interfaces import MessagePublisherInterface
 

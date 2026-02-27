@@ -1,5 +1,4 @@
 import os
-import tempfile
 import json
 
 from dishka.integrations.celery import FromDishka
@@ -37,7 +36,8 @@ def test_solution(
         if not result_model.test_cases:
             err_msg = result_model.err_msg or "internal error: tests didn't run and error message not given"
             head_err = err_msg.split(": ")[0]
-            result_model.test_cases = [TestCaseDTO(**{**dto["run_data"][0], "output": head_err})]
+            result_model.test_cases = [TestCaseDTO(
+                **{**dto["run_data"][0], "output": head_err})]  # type: ignore[arg-type]
             logger.error(
                 f"Unable to run tests of problem {dto["problem_id"]} by student {dto["student_id"]}. Runner response - '{result_model.err_msg}'")
         elif result_model.err_msg:
@@ -47,7 +47,9 @@ def test_solution(
     except Exception as e:
         publisher.publish(
             ResultDTO(
-                test_cases=[TestCaseDTO(**{**dto["run_data"][0], "output": "internal error"})],
+                test_cases=[
+                    TestCaseDTO(**{**dto["run_data"][0], "output": "internal error"})  # type: ignore[arg-type]
+                ],
                 err_msg=str(e),
                 problem_id=dto["problem_id"],
                 student_id=dto["student_id"],
