@@ -1,4 +1,4 @@
-from ploomby.registry import HandlersRegistry
+from ploomby.registry import HandlersRegistry  # type: ignore[import-untyped]
 
 from gateway.application.dtos import TestSolutionDTO
 from gateway.infra.tasks.test_solution import test_solution

@@ -3,8 +3,8 @@ import os
 
 from typing import Optional
 
-from docker import from_env
-from docker.errors import ImageNotFound
+from docker import from_env  # type: ignore[import-untyped]
+from docker.errors import ImageNotFound  # type: ignore[import-untyped]
 
 from gateway.application.interfaces import CodeRunnerInterface
 from gateway.infra.configs import RunnersConfig

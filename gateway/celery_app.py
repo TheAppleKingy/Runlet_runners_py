@@ -1,4 +1,4 @@
-import yaml
+import yaml  # type: ignore[import-untyped]
 from celery import Celery  # type: ignore
 from celery.signals import worker_process_shutdown  # type: ignore
 from dishka import make_container, Provider, provide, Scope, Container
@@ -26,15 +26,15 @@ class WorkerProvider(Provider):
 
     @provide
     def redis_conf(self) -> RedisConfig:
-        return RedisConfig()  # type: ignore
+        return RedisConfig()  # type: ignore[call-arg]
 
     @provide
     def rabbit_conf(self) -> RabbitConfig:
-        return RabbitConfig()
+        return RabbitConfig()  # type: ignore[call-arg]
 
     @provide
     def app_conf(self) -> AppConfig:
-        return AppConfig()
+        return AppConfig()  # type: ignore[call-arg]
 
     @provide
     def runners_conf(self, app_conf: AppConfig) -> RunnersConfig:
@@ -49,7 +49,7 @@ class WorkerProvider(Provider):
     runner = provide(DockerCodeRunService, provides=CodeRunnerInterface, scope=Scope.REQUEST)
 
 
-container = make_container(WorkerProvider())
+container = make_container(WorkerProvider())  # noqa: F811
 
 
 def get_celery():

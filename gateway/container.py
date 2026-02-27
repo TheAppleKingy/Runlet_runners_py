@@ -12,7 +12,7 @@ class RunnerGatewayProvider(Provider):
 
     @provide
     def rabbit_conf(self) -> RabbitConfig:
-        return RabbitConfig()
+        return RabbitConfig()  # type: ignore[call-arg]
 
 
 container = make_container(RunnerGatewayProvider())

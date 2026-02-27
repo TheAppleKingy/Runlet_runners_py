@@ -1,9 +1,7 @@
-import re
-
-from typing import Literal
-
 from pydantic import BaseModel, Field, field_validator
 from pydantic_settings import BaseSettings
+
+from gateway.domain.types import CodeName
 
 
 class RedisConfig(BaseSettings):
@@ -34,9 +32,6 @@ class AppConfig(BaseSettings):
     flower_password: str
 
 
-LangCode = Literal["py", "js", "go", "cs", "cpp"]
-
-
 class LangRunnerResourseInfo(BaseModel):
     image: str
     mem_limit: str
@@ -48,7 +43,7 @@ class LangRunnerResourseInfo(BaseModel):
 
 
 class RunnersConfig(BaseModel):
-    runners: dict[LangCode, LangRunnerResourseInfo]
+    runners: dict[CodeName, LangRunnerResourseInfo]
     dockerfiles_path: str
     runner_dockerfile_name: str
     runner_image_name_pattern: str
@@ -65,7 +60,7 @@ class RunnersConfig(BaseModel):
     @field_validator("runners", mode="after")
     @classmethod
     def validate_runners(cls, value: dict[str, LangRunnerResourseInfo]):
-        for code in LangCode.__args__:
+        for code in CodeName.__args__:  # type: ignore[attr-defined]
             if code not in value:
                 raise KeyError(f"Have to define config for '{code}' runner")
         return value

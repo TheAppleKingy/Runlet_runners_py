@@ -2,8 +2,8 @@ import asyncio
 import signal
 
 from dishka.integrations.celery import setup_dishka
-from ploomby.registry import MessageConsumerRegistry
-from ploomby.rabbit import RabbitConsumerFactory
+from ploomby.registry import MessageConsumerRegistry  # type: ignore[import-untyped]
+from ploomby.rabbit import RabbitConsumerFactory  # type: ignore[import-untyped]
 
 from gateway.interfaces.broker.test_solution import gateway_registry
 from gateway.logger import logger
