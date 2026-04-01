@@ -28,8 +28,6 @@ class RabbitConfig(BaseSettings):
 
 class AppConfig(BaseSettings):
     config_path: str
-    flower_user: str
-    flower_password: str
 
 
 class LangRunnerResourseInfo(BaseModel):

@@ -2,7 +2,7 @@ services:
   runlet_runner_gateway:
     build:
       context: ../../
-      dockerfile: build/dev/Dockerfile
+      dockerfile: build/prod/Dockerfile
     hostname: runner_gateway
     networks:
       - runner
@@ -25,7 +25,7 @@ services:
   runlet_runner_worker:
     build:  
       context: ../../
-      dockerfile: build/dev/Dockerfile
+      dockerfile: build/prod/Dockerfile
     env_file:
       - .env
     command: celery -A gateway.celery_app.celery_app worker --concurrency=8 --loglevel=info --events
@@ -37,20 +37,6 @@ services:
     networks:
       - runner
       - runlet_external
-
-  runlet_runner_flower:
-    build:  
-      context: ../../
-      dockerfile: build/dev/Dockerfile
-    env_file:
-      - .env
-    command: celery -A gateway.celery_app.celery_app flower --basic_auth=${FLOWER_USER}:${FLOWER_PASSWORD}
-    depends_on:
-      - runlet_runner_worker
-    ports:
-      - "5555:5555"
-    networks:
-      - runner
 
 volumes:
   runlet_runner_redis_data:
